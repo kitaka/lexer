@@ -1,0 +1,6 @@
+*.swp
+output
+testoutput
+*.sh
+output.dSYM
+testoutput.dSYM

@@ -1,0 +1,33 @@
+#ifndef __LEXER_HEADER__
+#define __LEXER_HEADER__
+
+#include <stdlib.h>
+#include <string.h>
+
+#include "token_types.h"
+
+struct token {
+  	int type;
+	union {
+	  	int integer;
+		char * string;
+		double doubleval;
+		char character;
+	};
+};
+
+struct lexer {
+  	char *code;
+	struct token **tokens;
+	int token_count;
+};
+
+struct lexer *lexer_init(char *code);
+void lexer_free(struct lexer *lexer);
+void lexer_analyze(struct lexer *lexer);
+void lexer_print_tokens(struct lexer *lexer);
+
+struct token *token_init();
+void token_free(struct token *token);
+
+#endif
