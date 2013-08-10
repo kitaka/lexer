@@ -1,7 +1,7 @@
 #include "lexer.h"
 
 
-struct lexer *lexer_init(char *code)
+struct lexer *lexer_init()
 {
   	struct lexer *lexer = calloc(1, sizeof(struct lexer));
 
@@ -11,10 +11,20 @@ struct lexer *lexer_init(char *code)
 	}
 	
 	lexer->token_count = 0;
-	lexer->code = strdup(code);
 	lexer->tokens = calloc(100, sizeof(struct token *));
-
+	
 	return lexer;
+}
+
+struct lexer *lexer_parse(char *code)
+{
+  	struct lexer *lexer = lexer_init();
+
+	if (lexer == NULL) return NULL;
+	
+	lexer->code = strdup(code);
+
+	return lexer;	
 }
 
 void lexer_free(struct lexer *lexer)
@@ -23,8 +33,7 @@ void lexer_free(struct lexer *lexer)
 	
 	int i;
 	for (i = 0; i < lexer->token_count; i++) {
-		if (lexer->tokens[i]->data_type == STRING_TYPE) free(lexer->tokens[i]->string);
-		free(lexer->tokens[i]);
+		token_free(lexer->tokens[i]);
 	}
 	
 	free(lexer->tokens);
@@ -47,11 +56,21 @@ struct token *token_init()
 
 void token_free(struct token *token)
 {
-  	if (token->string != NULL) {
+  	if (token == NULL) return;
+
+  	if ((token->data_type == STRING_TYPE) &&  (token->string != NULL)) {
 	  	free(token->string);
 	}
 
 	free(token);
+}
+
+/*
+ * The name might need to be changed
+ */
+int is_functional_token(struct token *token)
+{
+  	return token->type == ASSIGNMENT_OP_TOKEN || token->type == ADDITION_ARITHMETIC_TOKEN;
 }
 
 void lexer_add_token(struct lexer *lexer, struct token *token)
@@ -118,31 +137,38 @@ void lexer_analyze(struct lexer *lexer)
 	}
 }
 
+void token_debug(struct token *token)
+{
+  	if (token == NULL) return;
+
+	switch (token->type) {
+	case VARIABLE_TOKEN:
+		sdebug(token->string);
+		break;
+	case INTEGER_TOKEN:
+		idebug(token->integer);
+		break;
+	case ASSIGNMENT_OP_TOKEN:
+		cdebug(token->character);
+		break;
+	case STATEMENT_END_TOKEN:
+		cdebug(token->character);
+		break;
+	case ADDITION_ARITHMETIC_TOKEN:
+		cdebug(token->character);
+		break;
+	default:
+		sdebug("unknown");
+		break;
+	} 
+}
+
 void lexer_print_tokens(struct lexer *lexer)
 {
   	int i;
-  	for (i = 0; i < lexer->token_count; i++) {
-	  	switch (lexer->tokens[i]->type) {
-		case VARIABLE_TOKEN:
-			sdebug(lexer->tokens[i]->string);
-			break;
-		case INTEGER_TOKEN:
-			idebug(lexer->tokens[i]->integer);
-			break;
-		case ASSIGNMENT_OP_TOKEN:
-			cdebug(lexer->tokens[i]->character);
-			break;
-		case STATEMENT_END_TOKEN:
-			cdebug(lexer->tokens[i]->character);
-			break;
-		case ADDITION_ARITHMETIC_TOKEN:
-			cdebug(lexer->tokens[i]->character);
-			break;
-		default:
-			sdebug("unknown");
-			break;
-		} 
-	}
+
+  	for (i = 0; i < lexer->token_count; i++)
+		token_debug(lexer->tokens[i]);
 }
 
 

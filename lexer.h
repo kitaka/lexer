@@ -23,12 +23,14 @@ struct lexer {
 	int token_count;
 };
 
-struct lexer *lexer_init(char *code);
+struct lexer *lexer_init();
+struct lexer *lexer_parse(char *code);
 void lexer_free(struct lexer *lexer);
 void lexer_analyze(struct lexer *lexer);
 void lexer_print_tokens(struct lexer *lexer);
 
 struct token *token_init();
 void token_free(struct token *token);
+int is_functional_token(struct token *token);
 
 #endif
