@@ -44,7 +44,10 @@ int interprete_node(struct interpreter *interpreter, struct ast *ast)
 		symbol_table_insert(interpreter->symbols, keyval);
 	}
 	else if (ast->token->type == ADDITION_ARITHMETIC_TOKEN) {
-		return ast->left_node->token->integer + interprete_node(interpreter, ast->right_node);
+		return interprete_node(interpreter, ast->left_node) + interprete_node(interpreter, ast->right_node);
+	}
+	else if (ast->token->type == SUBTRACTION_ARITHMETIC_TOKEN) {
+		return interprete_node(interpreter, ast->left_node) - interprete_node(interpreter, ast->right_node);
 	}
 	else if ((ast->right_node == NULL) && (ast->left_node == NULL)) {
 	  	return ast->token->integer;

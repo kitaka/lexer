@@ -70,7 +70,9 @@ void token_free(struct token *token)
  */
 int is_functional_token(struct token *token)
 {
-  	return token->type == ASSIGNMENT_OP_TOKEN || token->type == ADDITION_ARITHMETIC_TOKEN;
+  	return token->type == ASSIGNMENT_OP_TOKEN || 
+	  	token->type == ADDITION_ARITHMETIC_TOKEN || 
+		token->type == SUBTRACTION_ARITHMETIC_TOKEN;
 }
 
 void lexer_add_token(struct lexer *lexer, struct token *token)
@@ -133,6 +135,9 @@ void lexer_analyze(struct lexer *lexer)
 		else if (lexer->code[i] == '=') parse_character(lexer, &i, ASSIGNMENT_OP_TOKEN);	
 		else if (lexer->code[i] == ';') parse_character(lexer, &i, STATEMENT_END_TOKEN);
 		else if (lexer->code[i] == '+') parse_character(lexer, &i, ADDITION_ARITHMETIC_TOKEN);
+		else if (lexer->code[i] == '-') parse_character(lexer, &i, SUBTRACTION_ARITHMETIC_TOKEN);
+		else if (lexer->code[i] == '(') parse_character(lexer, &i, BRACKET_OPEN_TOKEN);
+		else if (lexer->code[i] == ')') parse_character(lexer, &i, BRACKET_CLOSE_TOKEN);
 		else if (isdigit(lexer->code[i])) parse_digit(lexer, &i);  		  
 	}
 }
@@ -155,6 +160,9 @@ void token_debug(struct token *token)
 		cdebug(token->character);
 		break;
 	case ADDITION_ARITHMETIC_TOKEN:
+		cdebug(token->character);
+		break;
+	case SUBTRACTION_ARITHMETIC_TOKEN:
 		cdebug(token->character);
 		break;
 	default:
