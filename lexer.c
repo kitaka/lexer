@@ -7,6 +7,7 @@ struct lexer *lexer_init(char *code)
 
 	if (lexer == NULL) {
 	  	perror("Failed to init lexer");
+		return;
 	}
 	
 	lexer->token_count = 0;
@@ -19,9 +20,38 @@ struct lexer *lexer_init(char *code)
 void lexer_free(struct lexer *lexer)
 {
   	free(lexer->code);
-	// foreach token remove
+	
+	int i;
+	for (i = 0; i < lexer->token_count; i++) {
+		if (lexer->tokens[i]->data_type == STRING_TYPE) free(lexer->tokens[i]->string);
+		free(lexer->tokens[i]);
+	}
+	
 	free(lexer->tokens);
 	free(lexer);
+}
+
+struct token *token_init()
+{
+  	struct token *token = calloc(1, sizeof(struct token));
+
+	if (token == NULL) {
+		perror("Failed to allocate memory for token");
+		return;
+	}
+
+	token->data_type = 0;
+
+	return token;
+}
+
+void token_free(struct token *token)
+{
+  	if (token->string != NULL) {
+	  	free(token->string);
+	}
+
+	free(token);
 }
 
 void lexer_add_token(struct lexer *lexer, struct token *token)
@@ -29,62 +59,62 @@ void lexer_add_token(struct lexer *lexer, struct token *token)
 	lexer->tokens[lexer->token_count++] = token;
 }
 
+void parse_variable(struct lexer *lexer, int *idx)
+{
+	struct token *token = token_init();
+		  	
+	token->type = VARIABLE_TOKEN;	
+	token->string = malloc(255 * sizeof(char));
+			
+	int j = 0;
+	while (!isspace(lexer->code[++(*idx)]))
+		token->string[j++] = lexer->code[*idx];		
+			
+	lexer_add_token(lexer, token);
+}
+
+void parse_digit(struct lexer *lexer, int *idx)
+{
+  	int k;
+	struct token *token = token_init();
+		  	
+	token->type = INTEGER_TOKEN;
+	token->integer = 0;
+
+	--(*idx);
+	while (isdigit(lexer->code[++(*idx)])) {
+		k = lexer->code[*idx] - '0';
+		token->integer = (token->integer * 10) + k;
+	}
+
+	--(*idx);
+
+	lexer_add_token(lexer, token);
+}
+
+void parse_character(struct lexer *lexer, int *idx, int type)
+{
+	struct token *token = token_init();
+		
+	token->type = type;
+	token->character = lexer->code[*idx];
+			
+	lexer_add_token(lexer, token);
+}
+
 void lexer_analyze(struct lexer *lexer)
 {
-  	int i, j, k;
-	char c;
-  	ssize_t len = strlen(lexer->code);
-	char *code = lexer->code;
+  	int i;
+	ssize_t len;
 	
-
+	len = strlen(lexer->code);
+	
 	for (i = 0; i < len; i++) {
-		if (code[i] == '$') {
-		  	
-			struct token *token = token_init();
-		  	
-			token->type = VARIABLE_TOKEN;	
-			token->string = malloc(255 * sizeof(char));
-			
-			j = 0;
-			while (!isspace(code[++i])) {
-				token->string[j++] = code[i];	
-			}	
-			
-			lexer_add_token(lexer, token);
-		} 
-		else if (code[i] == '=') {
-			
-		  	struct token *token = token_init();
-		
-		  	token->type = ASSIGNMENT_OP_TOKEN;
-			token->character = '=';
-			
-			lexer_add_token(lexer, token);
-		}
-		else if (code[i] == ';') {
-			
-		  	struct token *token = token_init();
-			
-			token->type = STATEMENT_END_TOKEN;
-		       	token->character = ';';	
-			
-			lexer_add_token(lexer, token);
-		}
-		else if (isdigit(code[i])) {
-	  		  
-			struct token *token = token_init();
-		  	
-			token->type = INTEGER_TOKEN;
-			token->integer = 0;
-
-			--i;
-			while (isdigit(code[++i])) {
-			  	k = code[i] - '0';
-			  	token->integer = (token->integer * 10) + k;
-			}
-
-			lexer_add_token(lexer, token);
-		}
+		if (lexer->code[i] == '$') parse_variable(lexer, &i);  	
+		else if (lexer->code[i] == '=') parse_character(lexer, &i, ASSIGNMENT_OP_TOKEN);	
+		else if (lexer->code[i] == ';') parse_character(lexer, &i, STATEMENT_END_TOKEN);
+		else if (lexer->code[i] == '+') parse_character(lexer, &i, ADDITION_ARITHMETIC_TOKEN);
+		else if (isdigit(lexer->code[i])) parse_digit(lexer, &i);  		  
 	}
 }
 
@@ -105,29 +135,14 @@ void lexer_print_tokens(struct lexer *lexer)
 		case STATEMENT_END_TOKEN:
 			cdebug(lexer->tokens[i]->character);
 			break;
+		case ADDITION_ARITHMETIC_TOKEN:
+			cdebug(lexer->tokens[i]->character);
+			break;
 		default:
+			sdebug("unknown");
 			break;
 		} 
 	}
 }
 
-struct token *token_init()
-{
-  	struct token *token = calloc(1, sizeof(struct token));
-
-	if (token == NULL) {
-		perror("Failed to allocate memory for token");
-	}
-
-	return token;
-}
-
-void token_free(struct token *token)
-{
-  	if (token->string != NULL) {
-	  	free(token->string);
-	}
-
-	free(token);
-}
 

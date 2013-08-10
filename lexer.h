@@ -8,6 +8,7 @@
 
 struct token {
   	int type;
+	int data_type;
 	union {
 	  	int integer;
 		char * string;
