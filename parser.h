@@ -19,7 +19,8 @@ struct parser {
 	struct ast *hanging_node;
 	struct ast *current_node;
 	struct ast *current_hanging_node;
-
+	int use_working_node;
+	struct ast *working_node;
 };
 
 
@@ -28,7 +29,7 @@ struct parser *parser_init();
 void parser_free(struct parser *parser);
 void ast_free(struct ast *ast);
 void ast_debug(struct ast *ast);
-struct ast *ast_parse(struct lexer *lexer);
+//struct ast *ast_parse(struct lexer *lexer);
 struct parser *parser_parse(struct lexer *lexer);
 
 #endif
