@@ -1,10 +1,13 @@
 #ifndef __LEXER_HEADER__
 #define __LEXER_HEADER__
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <ctype.h>
 
 #include "token_types.h"
+#include "debug.h"
 
 struct token {
   	int type;
@@ -31,6 +34,7 @@ void lexer_print_tokens(struct lexer *lexer);
 
 struct token *token_init();
 void token_free(struct token *token);
+void token_debug(struct token *token);
 int is_functional_token(struct token *token);
 
 #endif

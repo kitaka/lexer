@@ -56,4 +56,8 @@ int interprete_node(struct interpreter *interpreter, struct ast *ast)
 	else if ((ast->right_node == NULL) && (ast->left_node == NULL)) {
 	  	return ast->token->integer;
 	}
+	else {
+	}
+
+	return -1;
 }

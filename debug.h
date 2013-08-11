@@ -6,5 +6,6 @@
 
 void sdebug(const char *str);
 void idebug(int i);
+void cdebug(char c);
 
 #endif

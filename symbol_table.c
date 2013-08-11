@@ -6,7 +6,7 @@ struct symbol_table *symbol_table_init()
 
 	if (symbols == NULL) {
 	  	perror("Could not allocate memory for symbol table");
-		return;
+		return NULL;
 	}
 
 	symbols->key_val = NULL;
@@ -23,7 +23,7 @@ struct key_val *key_val_init()
 
 	if (keyval == NULL) {
 		perror("Could not allocate memory for key val");
-		return ;
+		return NULL;
 	}
 
 	return keyval;
@@ -70,6 +70,8 @@ struct symbol_table *symbol_table_find_keyval(struct symbol_table *symbols, stru
 	if (key_val_compare(symbols->key_val, keyval)) return symbols;
 
 	symbol_table_find_keyval(symbols->next, keyval);
+
+	return NULL;
 }
 
 struct symbol_table *symbol_table_find(struct symbol_table *symbols, char *key)

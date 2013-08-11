@@ -6,7 +6,7 @@ struct ast *ast_init()
 
 	if (ast == NULL) {
 	  	perror("Failed to allocate memory for AST");
-		return ;
+		return NULL;
 	}
 
 	ast->parent = NULL;
@@ -22,7 +22,7 @@ struct parser *parser_init()
 
 	if (parser == NULL) {
 	  	perror("Failed to allocate memory for Parser");
-		return ;
+		return NULL;
 	}
 	
 	return parser;

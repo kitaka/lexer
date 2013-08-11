@@ -1,7 +1,9 @@
 #ifndef __SYMBOL_TABLE_HEADER__
 #define __SYMBOL_TABLE_HEADER__
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define STRING_VALUE 1
 

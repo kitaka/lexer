@@ -7,7 +7,7 @@ struct lexer *lexer_init()
 
 	if (lexer == NULL) {
 	  	perror("Failed to init lexer");
-		return;
+		return NULL;
 	}
 	
 	lexer->token_count = 0;
@@ -46,7 +46,7 @@ struct token *token_init()
 
 	if (token == NULL) {
 		perror("Failed to allocate memory for token");
-		return;
+		return NULL;
 	}
 
 	token->data_type = 0;
