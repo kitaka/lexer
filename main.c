@@ -10,15 +10,17 @@ int main(void)
 {
   	struct lexer *lexer;
 
-	lexer = lexer_parse("$var = (5 - 2) + 1;");
+	//lexer = lexer_parse("$var = (5 - 2) + 1;");
 	//lexer = lexer_parse("$var = 5 - (2 + 1);");
+	lexer = lexer_parse("$var = 1 + (2 + 3) + (10 - (9 - 2));");
 	lexer_analyze(lexer);
 	//lexer_print_tokens(lexer); return;
 
 	struct parser *parser = parser_parse(lexer);
-	ast_debug(parser->main_node); return;
+	//ast_debug(parser->main_node); return;
+	//ast_debug(parser->tree); return;
 
-	struct interpreter *interpreter = interpreter_interprete(parser->main_node);	
+	struct interpreter *interpreter = interpreter_interprete(parser->tree);	
 	struct symbol_table *found = symbol_table_find(interpreter->symbols, "var");
 	idebug(found->key_val->integer_val);
 	
@@ -41,7 +43,7 @@ void test_that_computation_returns_number_four(struct lexer *lexer)
 	struct parser *parser = parser_parse(lexer);
 	//ast_debug(parser->main_node); return;
 
-	struct interpreter *interpreter = interpreter_interprete(parser->main_node);	
+	struct interpreter *interpreter = interpreter_interprete(parser->tree);	
 	struct symbol_table *found = symbol_table_find(interpreter->symbols, "var");
 	idebug(found->key_val->integer_val);
 	

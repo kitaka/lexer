@@ -4,7 +4,6 @@
 #include <stdio.h>
 #include "lexer.h"
 
-static struct ast *hanging_node;
 
 struct ast {
   	struct token *token;
@@ -15,12 +14,7 @@ struct ast {
 
 struct parser {
   	struct lexer *lexer;
-	struct ast *main_node;
-	struct ast *hanging_node;
-	struct ast *current_node;
-	struct ast *current_hanging_node;
-	int use_working_node;
-	struct ast *working_node;
+	struct ast *tree;
 };
 
 

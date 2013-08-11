@@ -25,108 +25,123 @@ struct parser *parser_init()
 		return ;
 	}
 	
-	parser->use_working_node = 0;
-
 	return parser;
 }
 
 void parser_free(struct parser *parser)
 {
-  	ast_free(parser->main_node);
+  	ast_free(parser->tree);
 	free(parser);
 }
 
-
-/*
- * Finds the previous node. Sets it to a hanging node if previous token was a closing braket
- */
-struct ast *get_left_node(struct parser *parser, struct ast *current_node, int *idx)
+int find_pos_closing_bracket(struct token **tokens, int len)
 {
-  	int prev_idx = (*idx) - 1;	
-	struct token *token = parser->lexer->tokens[prev_idx];
+  	int i, brackets = 0;
 
-	if (token->type == BRACKET_CLOSE_TOKEN) {
-	  	return parser->hanging_node;
+  	for (i = 0; i < len; i++) {
+      		
+	  	if (tokens[i]->type == BRACKET_OPEN_TOKEN) {
+			++brackets;
+		}		  
+		else if (tokens[i]->type == BRACKET_CLOSE_TOKEN) {
+		  	--brackets;
+
+	  		if (brackets == 0) 
+			  	return i;
+		}
 	}
 
-	struct ast *node = ast_init();
-	node->token = token;
-	node->parent = current_node;
-
-	return node;
+	return -1;	
 }
 
-struct ast *get_right_node(struct parser *parser, struct ast *current_node, int *idx)
+int is_token_semi_colon(struct token *token)
 {
-  	int next_idx = (*idx) + 1;	
-	struct token *token = parser->lexer->tokens[next_idx];
-
-	if (token->type == BRACKET_OPEN_TOKEN) {
-	  	parser->working_node = ast_init();
-		parser->use_working_node = 1;
-	  	return parser->working_node;
-	}
-
-	struct ast *node = ast_init();
-	node->token = token;
-	node->parent = current_node;
-
-	return node;
+  	return token->type == STATEMENT_END_TOKEN;
 }
 
-void parse_token(struct parser *parser, struct ast **current_node, int *idx)
+int is_token_closing_bracket(struct token *token)
 {
-  	/* this should hold the value of the sign like +, -, =, * etc */
-	(*current_node)->token = parser->lexer->tokens[*idx];
+  	return token->type == BRACKET_CLOSE_TOKEN;
+}
+
+int is_token_integer(struct token *token) 
+{
+  	return token->type == INTEGER_TOKEN;
+}
+
+int is_token_variable(struct token *token) 
+{
+  	return token->type == VARIABLE_TOKEN;
+}
+
+void parse_functional_token(struct token *token, struct ast **waiting_left_node, struct ast **active_node)
+{
+	struct ast *node = ast_init();
 	
-
-	(*current_node)->left_node = get_left_node(parser, (*current_node), idx);	
-
-	//(*current_node)->right_node = get_right_node(parser, (*current_node), idx);
-	(*current_node)->right_node = ast_init();
-	(*current_node)->right_node->token = parser->lexer->tokens[(*idx) + 1];
-	(*current_node)->right_node->parent = (*current_node);
-
-	(*current_node) = (*current_node)->right_node;
+	node->token = token;
+	node->parent = *active_node;
+	node->left_node = *waiting_left_node;
+	(*waiting_left_node)->parent = node;
+	(*active_node)->right_node = node;
+	(*active_node) = node;
 }
 
-void ast_parse(struct parser *parser, int *idx)
+void connect_or_hang_node(struct ast *node, struct ast **waiting_left_node, struct ast **active_node, struct token *next_token)
 {
-	if (parser->lexer->tokens[*idx]->type == BRACKET_OPEN_TOKEN) {
-		parser->current_hanging_node = parser->hanging_node = (parser->use_working_node == 1) ? parser->working_node : ast_init();
-		  	
-		while (parser->lexer->tokens[*idx]->type != BRACKET_CLOSE_TOKEN) {
-			if (is_functional_token(parser->lexer->tokens[*idx])) {
-				//parse_token(parser, &parser->current_hanging_node, idx);		
-				parse_token(parser, &parser->current_node, idx);		
-			}
-			++(*idx);
-		}
+	if (is_token_semi_colon(next_token) || is_token_closing_bracket(next_token)) {
+	 	node->parent = *active_node;
+	 	(*active_node)->right_node = node;
+	} else {
+	  	*waiting_left_node = node;
+	}	  
+}
+
+struct ast *parse_tokens(struct parser *parser, struct token **tokens, int count)
+{
+  	struct ast *node, *waiting_left_node, *root_node, *active_node;
+  	int idx, last_idx;
+
+	last_idx = count - 1;
+	node = NULL;
+
+	active_node = root_node = ast_init();
+
+	for (idx = 0; idx < count; idx++) {
 		
-		// restore current_node to the current_hanging_node
-		if (parser->use_working_node == 10) {
-		  	parser->current_node = parser->current_hanging_node;
-			parser->use_working_node = 0;
+		if (tokens[idx]->type == BRACKET_OPEN_TOKEN) {
+		  	int pos = find_pos_closing_bracket(&tokens[idx], count - idx);
+			struct ast *subtree = parse_tokens(parser, &tokens[idx + 1], pos - 1);
+
+			idx = idx + pos;
+
+			connect_or_hang_node(subtree->right_node, &waiting_left_node, &active_node, tokens[idx + 1]);
+		}	  
+		else if (is_token_integer(tokens[idx]) || is_token_variable(tokens[idx])) {
+		  	
+		  	node = ast_init();
+			node->token = tokens[idx];
+			node->right_node = NULL;
+			node->left_node = NULL;
+
+			connect_or_hang_node(node, &waiting_left_node, &active_node, tokens[idx + 1]);
 		}
-	}
-	else if (is_functional_token(parser->lexer->tokens[*idx])) {
-	  	parse_token(parser, &parser->current_node, idx);
-	}
+		else if (is_functional_token(tokens[idx])) {
+		  	parse_functional_token(tokens[idx], &waiting_left_node, &active_node);
+		}
+
+	}	  
+
+	return root_node;
 }
 
 struct parser *parser_parse(struct lexer *lexer)
 {
   	struct parser *parser = parser_init();
-	if (parser == NULL) return NULL;
-	parser->lexer = lexer;
 	
-	parser->current_node = parser->main_node = ast_init();
-	if (parser->main_node == NULL) return NULL;
-
-	int i;
-	for (i = 0; i < lexer->token_count; i++) {
-		ast_parse(parser, &i);
-	}
+	if (parser == NULL) return NULL;
+	
+	parser->lexer = lexer;
+	parser->tree = parse_tokens(parser, parser->lexer->tokens, parser->lexer->token_count);
 
 	return parser;
 }

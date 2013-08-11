@@ -34,7 +34,11 @@ void interpreter_free(struct interpreter *interpreter)
 
 int interprete_node(struct interpreter *interpreter, struct ast *ast)
 {
-  	if (ast->token->type == ASSIGNMENT_OP_TOKEN) {
+  	if (ast->token == NULL) {
+	  	/* if the token is not set then we might be on the root node */
+	  	interprete_node(interpreter, ast->right_node);
+	}
+	else if (ast->token->type == ASSIGNMENT_OP_TOKEN) {
 	  	struct key_val *keyval = key_val_init();
 		
 		/* assign to the value in the left node */
@@ -52,5 +56,4 @@ int interprete_node(struct interpreter *interpreter, struct ast *ast)
 	else if ((ast->right_node == NULL) && (ast->left_node == NULL)) {
 	  	return ast->token->integer;
 	}
-
 }

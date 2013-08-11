@@ -1,4 +1,5 @@
 *.swp
+notes.txt
 output
 testoutput
 *.sh
