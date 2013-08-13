@@ -7,11 +7,14 @@
 #include "interpreter.h"
 #include "executor.h"
 
+#define _assert_variable_value(x, y, z) printf("Testing: %s on line: %d\n", __func__, __LINE__); assert_variable_value(x, y, z)
+
 void test_symbol_table();
 void run_all_tests();
 
 int main(void)
 {
+  	//printf("Test: %s, %d", __func__, __LINE__);
 	run_all_tests();
   	
   	return 0;
@@ -42,29 +45,29 @@ void test_that_two_variables_can_be_initiated()
 {
   	char *code = "$var = 1 + 2; $x =  2 + 3;";
 
-	assert_variable_value(code, "x", 5);
-	assert_variable_value(code, "var", 3);
+	_assert_variable_value(code, "x", 5);
+	_assert_variable_value(code, "var", 3);
 }
 
 void test_that_nested_brackets_can_be_processed()
 {
 	char *code = "$var = 1 + (2 + 3) + (10 - (9 - 2));";
 
-	assert_variable_value(code, "var", 9);
+	_assert_variable_value(code, "var", 9);
 }
 
 void test_that_a_variable_can_be_used_in_another_statement()
 {
   	char *code = "$x = 1 + 2; $y = $x + 3;";
 
-	assert_variable_value(code, "y", 6);
+	_assert_variable_value(code, "y", 6);
 }
 
 void test_that_two_variables_can_be_added()
 {
   	char *code = "$x = 1 + 2; $y = $x + 3; $z = $x + $y;";
   	
-	assert_variable_value(code, "z", 9);
+	_assert_variable_value(code, "z", 9);
 }
 
 void run_all_tests()
@@ -96,6 +99,4 @@ void test_symbol_table()
 	
 	sdebug(found->key_val->string_val);
 	sdebug(found2->key_val->string_val);
-
-
 }
