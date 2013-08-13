@@ -88,8 +88,10 @@ void parse_variable(struct lexer *lexer, int *idx)
 	token->string = malloc(255 * sizeof(char));
 			
 	int j = 0;
-	while (!isspace(lexer->code[++(*idx)]))
+	while (!isspace(lexer->code[++(*idx)]) && lexer->code[*idx] != ';')
 		token->string[j++] = lexer->code[*idx];		
+
+	if (lexer->code[*idx] == ';') --(*idx);
 			
 	lexer_add_token(lexer, token);
 }

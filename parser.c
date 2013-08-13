@@ -96,7 +96,7 @@ void connect_or_hang_node(struct ast *node, struct ast **waiting_left_node, stru
 	}	  
 }
 
-struct ast *parse_tokens(struct parser *parser, struct token **tokens, int count)
+struct ast *parser_parse_tokens(struct token **tokens, int count)
 {
   	struct ast *node, *waiting_left_node, *root_node, *active_node;
   	int idx, last_idx;
@@ -110,7 +110,7 @@ struct ast *parse_tokens(struct parser *parser, struct token **tokens, int count
 		
 		if (tokens[idx]->type == BRACKET_OPEN_TOKEN) {
 		  	int pos = find_pos_closing_bracket(&tokens[idx], count - idx);
-			struct ast *subtree = parse_tokens(parser, &tokens[idx + 1], pos - 1);
+			struct ast *subtree = parser_parse_tokens(&tokens[idx + 1], pos - 1);
 
 			idx = idx + pos;
 
@@ -141,7 +141,7 @@ struct parser *parser_parse(struct lexer *lexer)
 	if (parser == NULL) return NULL;
 	
 	parser->lexer = lexer;
-	parser->tree = parse_tokens(parser, parser->lexer->tokens, parser->lexer->token_count);
+	parser->tree = parser_parse_tokens(parser->lexer->tokens, parser->lexer->token_count);
 
 	return parser;
 }

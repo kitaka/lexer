@@ -24,6 +24,7 @@ void parser_free(struct parser *parser);
 void ast_free(struct ast *ast);
 void ast_debug(struct ast *ast);
 //struct ast *ast_parse(struct lexer *lexer);
+struct ast *parser_parse_tokens(struct token **, int);
 struct parser *parser_parse(struct lexer *lexer);
 
 #endif

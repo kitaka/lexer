@@ -9,6 +9,9 @@ struct interpreter *interpreter_init()
 		return NULL;
 	}
 
+	interpreter->symbols = symbol_table_init();
+
+
 	return interpreter;
 }
 
@@ -35,7 +38,6 @@ void interpreter_free(struct interpreter *interpreter)
 int interprete_node(struct interpreter *interpreter, struct ast *ast)
 {
   	if (ast->token == NULL) {
-	  	/* if the token is not set then we might be on the root node */
 	  	interprete_node(interpreter, ast->right_node);
 	}
 	else if (ast->token->type == ASSIGNMENT_OP_TOKEN) {
@@ -46,12 +48,17 @@ int interprete_node(struct interpreter *interpreter, struct ast *ast)
 		keyval->integer_val = interprete_node(interpreter, ast->right_node);
 		
 		symbol_table_insert(interpreter->symbols, keyval);
+
 	}
 	else if (ast->token->type == ADDITION_ARITHMETIC_TOKEN) {
 		return interprete_node(interpreter, ast->left_node) + interprete_node(interpreter, ast->right_node);
 	}
 	else if (ast->token->type == SUBTRACTION_ARITHMETIC_TOKEN) {
 		return interprete_node(interpreter, ast->left_node) - interprete_node(interpreter, ast->right_node);
+	}
+	else if (ast->token->type == VARIABLE_TOKEN) {
+	  	struct symbol_table *symbol = symbol_table_find(interpreter->symbols, ast->token->string);
+		if (symbol != NULL) return symbol->key_val->integer_val;
 	}
 	else if ((ast->right_node == NULL) && (ast->left_node == NULL)) {
 	  	return ast->token->integer;
