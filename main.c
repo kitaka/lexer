@@ -14,7 +14,6 @@ void run_all_tests();
 
 int main(void)
 {
-  	//printf("Test: %s, %d", __func__, __LINE__);
 	run_all_tests();
   	
   	return 0;
