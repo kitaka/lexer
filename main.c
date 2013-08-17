@@ -34,7 +34,7 @@ void assert_variable_value(char *code, char *var, int result)
 	found = symbol_table_find(executor->interpreter->symbols, var); 
 
 	assert(found != NULL);
-	idebug(found->key_val->integer_val);
+	//idebug(found->key_val->integer_val);
 	assert(found->key_val->integer_val == result);	
 
 	lexer_free(lexer);
@@ -110,15 +110,15 @@ void test_that_we_can_return_the_position_of_closing_bracket()
 void run_all_tests()
 {
   	//test_symbol_table();
-  	//test_that_two_variables_can_be_initiated();
-	//test_that_nested_brackets_can_be_processed();
-	//test_that_a_variable_can_be_used_in_another_statement();
-	//test_that_two_variables_can_be_added();
+  	test_that_two_variables_can_be_initiated();
+	test_that_nested_brackets_can_be_processed();
+	test_that_a_variable_can_be_used_in_another_statement();
+	test_that_two_variables_can_be_added();
 	test_that_if_logic_works();
 	test_that_else_logic_works();
-	//test_that_can_find_string_between_characters();
-	//test_that_can_find_string_between_characters_second();
-	//test_that_we_can_return_the_position_of_closing_bracket();
+	test_that_can_find_string_between_characters();
+	test_that_can_find_string_between_characters_second();
+	test_that_we_can_return_the_position_of_closing_bracket();
 }
 
 void test_symbol_table()
