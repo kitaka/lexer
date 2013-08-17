@@ -38,7 +38,7 @@ void interpreter_free(struct interpreter *interpreter)
 int interprete_node(struct interpreter *interpreter, struct ast *ast)
 {
   	if (ast->token == NULL) {
-	  	interprete_node(interpreter, ast->right_node);
+	  	return interprete_node(interpreter, ast->right_node);
 	}
 	else if (ast->token->type == ASSIGNMENT_OP_TOKEN) {
 	  	struct key_val *keyval = key_val_init();
@@ -52,6 +52,9 @@ int interprete_node(struct interpreter *interpreter, struct ast *ast)
 	}
 	else if (ast->token->type == ADDITION_ARITHMETIC_TOKEN) {
 		return interprete_node(interpreter, ast->left_node) + interprete_node(interpreter, ast->right_node);
+	}
+	else if (ast->token->type == EQUALITY_OP_TOKEN) {
+		return interprete_node(interpreter, ast->left_node) == interprete_node(interpreter, ast->right_node);
 	}
 	else if (ast->token->type == SUBTRACTION_ARITHMETIC_TOKEN) {
 		return interprete_node(interpreter, ast->left_node) - interprete_node(interpreter, ast->right_node);

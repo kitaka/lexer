@@ -54,19 +54,27 @@ void symbol_table_free(struct symbol_table *symbols)
 
 void symbol_table_insert(struct symbol_table *symbols, struct key_val *keyval)
 {
-  	struct symbol_table *current = symbols;
   	if (symbols == NULL) return ;
 
-	if (symbols->key_val != NULL)
-		current = symbols->next = symbol_table_init();
+	// we could find if the key_val already exists before we insert it
+	struct symbol_table *search = symbol_table_find_keyval(symbols, keyval);
+	if (search != NULL) {
+		search->key_val = keyval;
+		return ;
+	}
 
-	current->key_val = keyval;
+	if (symbols->head == NULL) symbols->head = symbols;
+
+	if (symbols->head->key_val != NULL)
+		symbols->head = symbols->head->next = symbol_table_init();
+
+	symbols->head->key_val = keyval;
 }
 
 struct symbol_table *symbol_table_find_keyval(struct symbol_table *symbols, struct key_val *keyval)
 {
   	if (symbols == NULL) return NULL;
-
+	
 	if (key_val_compare(symbols->key_val, keyval)) return symbols;
 
 	return symbol_table_find_keyval(symbols->next, keyval);

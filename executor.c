@@ -48,6 +48,21 @@ struct executor *executor_execute(struct lexer *lexer)
 
 			tokens_partition_idx = i + 0;
 		}
+		else if (lexer->tokens[i]->type == IF_KEYWORD_TOKEN) {
+		  	// we handle the if statement here
+			struct if_stmt *stmt = (struct if_stmt *) lexer->tokens[i]->pointer;
+
+			// get the result of the condition
+			tree = parser_parse_tokens(stmt->condition_lexer->tokens, stmt->condition_lexer->token_count);
+			int output = interprete_node(executor->interpreter, tree);
+
+			// based on the execution choose either the if or else block lexer
+			struct lexer *block_lexer;
+		       	
+			block_lexer = output ? stmt->if_block_lexer : stmt->else_block_lexer;
+			tree = parser_parse_tokens(block_lexer->tokens, block_lexer->token_count);
+			interprete_node(executor->interpreter, tree);
+		}
 
 	}
 

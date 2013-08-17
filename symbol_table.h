@@ -21,6 +21,7 @@ struct symbol_table {
   	struct key_val *key_val;	
 	struct symbol_table *next;
 	struct symbol_table *prev;
+	struct symbol_table *head;
 };
 
 struct symbol_table *symbol_table_init();
@@ -30,6 +31,7 @@ int key_val_compare(struct key_val *keyval1, struct key_val *keyval2);
 void symbol_table_free(struct symbol_table *symbol_table);
 void symbol_table_insert(struct symbol_table *symbol_table, struct key_val *key_val);
 struct symbol_table *symbol_table_find(struct symbol_table *symbol_table, char *key);
+struct symbol_table *symbol_table_find_keyval(struct symbol_table *symbols, struct key_val *keyval);
 
 #endif
 

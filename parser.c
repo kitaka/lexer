@@ -64,6 +64,11 @@ int is_token_closing_bracket(struct token *token)
   	return token->type == BRACKET_CLOSE_TOKEN;
 }
 
+int is_token_open_brace(struct token *token)
+{
+  	return token->type == BRACE_OPEN_TOKEN;
+}
+
 int is_token_integer(struct token *token) 
 {
   	return token->type == INTEGER_TOKEN;
@@ -86,9 +91,9 @@ void parse_functional_token(struct token *token, struct ast **waiting_left_node,
 	(*active_node) = node;
 }
 
-void connect_or_hang_node(struct ast *node, struct ast **waiting_left_node, struct ast **active_node, struct token *next_token)
+void connect_or_hang_node(struct ast *node, struct ast **waiting_left_node, struct ast **active_node, struct token *next_token, int end)
 {
-	if (is_token_semi_colon(next_token) || is_token_closing_bracket(next_token)) {
+	if (end || is_token_semi_colon(next_token) || is_token_closing_bracket(next_token) || is_token_open_brace(next_token)) {
 	 	node->parent = *active_node;
 	 	(*active_node)->right_node = node;
 	} else {
@@ -114,7 +119,7 @@ struct ast *parser_parse_tokens(struct token **tokens, int count)
 
 			idx = idx + pos;
 
-			connect_or_hang_node(subtree->right_node, &waiting_left_node, &active_node, tokens[idx + 1]);
+			connect_or_hang_node(subtree->right_node, &waiting_left_node, &active_node, tokens[idx + 1], ((idx +1) == count));
 		}	  
 		else if (is_token_integer(tokens[idx]) || is_token_variable(tokens[idx])) {
 		  	
@@ -123,7 +128,7 @@ struct ast *parser_parse_tokens(struct token **tokens, int count)
 			node->right_node = NULL;
 			node->left_node = NULL;
 
-			connect_or_hang_node(node, &waiting_left_node, &active_node, tokens[idx + 1]);
+			connect_or_hang_node(node, &waiting_left_node, &active_node, tokens[idx + 1], ((idx +1) == count));
 		}
 		else if (is_functional_token(tokens[idx])) {
 		  	parse_functional_token(tokens[idx], &waiting_left_node, &active_node);

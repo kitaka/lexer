@@ -6,6 +6,7 @@
 #include <string.h>
 #include <ctype.h>
 
+#include "utils.h"
 #include "token_types.h"
 #include "debug.h"
 
@@ -17,7 +18,14 @@ struct token {
 		char * string;
 		double doubleval;
 		char character;
+		void *pointer;
 	};
+};
+
+struct if_stmt {
+  	struct lexer *condition_lexer;
+	struct lexer *if_block_lexer;
+	struct lexer *else_block_lexer;
 };
 
 struct lexer {
@@ -36,5 +44,10 @@ struct token *token_init();
 void token_free(struct token *token);
 void token_debug(struct token *token);
 int is_functional_token(struct token *token);
+
+struct if_stmt *if_stmt_init();
+void if_stmt_free(struct if_stmt *if_stmt);
+
+
 
 #endif

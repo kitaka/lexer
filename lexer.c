@@ -16,6 +16,23 @@ struct lexer *lexer_init()
 	return lexer;
 }
 
+struct if_stmt *if_stmt_init()
+{
+  	struct if_stmt *if_stmt = calloc(1, sizeof(struct if_stmt));
+
+	if (if_stmt == NULL) {
+		perror("Failed to init if stmt");
+		return NULL;
+	}
+
+	return if_stmt;
+}
+
+void if_stmt_free(struct if_stmt *if_stmt)
+{
+  	free(if_stmt);
+}
+
 struct lexer *lexer_parse(char *code)
 {
   	struct lexer *lexer = lexer_init();
@@ -71,6 +88,7 @@ void token_free(struct token *token)
 int is_functional_token(struct token *token)
 {
   	return token->type == ASSIGNMENT_OP_TOKEN || 
+	  	token->type == EQUALITY_OP_TOKEN || 
 	  	token->type == ADDITION_ARITHMETIC_TOKEN || 
 		token->type == SUBTRACTION_ARITHMETIC_TOKEN;
 }
@@ -125,6 +143,59 @@ void parse_character(struct lexer *lexer, int *idx, int type)
 	lexer_add_token(lexer, token);
 }
 
+struct lexer *lexer_parse_and_analyze(char *str)
+{
+	struct lexer *lexer = lexer_parse(str);
+	lexer_analyze(lexer);
+
+	return lexer;
+}
+
+struct lexer *lexer_of_code_between(char *input, char open, char close)
+{
+	char *str = find_string_between(input, open, close);	
+	struct lexer *lexer  = lexer_parse_and_analyze(str);
+
+	return lexer;
+}
+
+void skip_over_spaces(struct lexer *lexer, int *idx)
+{
+	while (lexer->code[*idx] == ' ') (*idx) ++;
+}
+
+int else_block_available(char *str)
+{
+	return (strcmp(strndup(str, 4), "else") == 0);
+}
+
+void move_index_to_after_brace(struct lexer *lexer, int *idx)
+{
+	(*idx) = (*idx) + find_pos_closing_character(&lexer->code[*idx], '{', '}') + 1;
+}
+
+void parse_if_statement(struct lexer *lexer, int *idx)
+{
+	struct token *token = token_init();
+	struct if_stmt *if_stmt = if_stmt_init();
+	
+	token->type = IF_KEYWORD_TOKEN;
+	token->pointer = if_stmt;			
+	
+	lexer_add_token(lexer, token);	
+
+	if_stmt->condition_lexer = lexer_of_code_between(&lexer->code[*idx], '(', ')');
+	if_stmt->if_block_lexer = lexer_of_code_between(&lexer->code[*idx], '{', '}');
+	
+	move_index_to_after_brace(lexer, idx);
+
+	skip_over_spaces(lexer, idx);
+
+	if (else_block_available(&lexer->code[*idx])) if_stmt->else_block_lexer = lexer_of_code_between(&lexer->code[*idx], '{', '}');
+
+	move_index_to_after_brace(lexer, idx);
+}
+
 void lexer_analyze(struct lexer *lexer)
 {
   	int i;
@@ -134,13 +205,16 @@ void lexer_analyze(struct lexer *lexer)
 	
 	for (i = 0; i < len; i++) {
 		if (lexer->code[i] == '$') parse_variable(lexer, &i);  	
+		else if (lexer->code[i] == '=' && lexer->code[i + 1] == '=') { parse_character(lexer, &i, EQUALITY_OP_TOKEN); i++;	}
 		else if (lexer->code[i] == '=') parse_character(lexer, &i, ASSIGNMENT_OP_TOKEN);	
 		else if (lexer->code[i] == ';') parse_character(lexer, &i, STATEMENT_END_TOKEN);
 		else if (lexer->code[i] == '+') parse_character(lexer, &i, ADDITION_ARITHMETIC_TOKEN);
 		else if (lexer->code[i] == '-') parse_character(lexer, &i, SUBTRACTION_ARITHMETIC_TOKEN);
 		else if (lexer->code[i] == '(') parse_character(lexer, &i, BRACKET_OPEN_TOKEN);
 		else if (lexer->code[i] == ')') parse_character(lexer, &i, BRACKET_CLOSE_TOKEN);
+		else if (lexer->code[i] == '{') parse_character(lexer, &i, BRACE_OPEN_TOKEN);
 		else if (isdigit(lexer->code[i])) parse_digit(lexer, &i);  		  
+		else if (lexer->code[i] == 'i' && lexer->code[i+1] == 'f') parse_if_statement(lexer, &i);
 	}
 }
 
@@ -157,6 +231,9 @@ void token_debug(struct token *token)
 		break;
 	case ASSIGNMENT_OP_TOKEN:
 		cdebug(token->character);
+		break;
+	case EQUALITY_OP_TOKEN:
+		sdebug("==");
 		break;
 	case STATEMENT_END_TOKEN:
 		cdebug(token->character);
